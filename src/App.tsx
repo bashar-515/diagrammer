@@ -2,36 +2,63 @@ import { useState } from 'react'
 import { NODE_RADIUS } from './consts'
 import Node from './components/ui/Node'
 
+type Pose = { id: number, x: number, y: number };
+
 function App() {
-  const [poses, setPoses] = useState<{ x: number, y: number }[] | []>([]);
+  const [poses, setPoses] = useState<Pose[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const x = e.clientX - NODE_RADIUS;
-    const y = e.clientY - NODE_RADIUS;
+    if (selectedId === null) {
+      const x = e.clientX - NODE_RADIUS;
+      const y = e.clientY - NODE_RADIUS;
 
-    setPoses(prev => [...prev, { x, y }]);
+      const newPose: Pose = {
+        id: Date.now(),
+        x,
+        y,
+      };
+
+      setPoses(prev => [...prev, newPose]);
+    }
+
+    setSelectedId(null);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if ((e.key === 'Backspace' || e.key === 'Delete') && selectedId !== null) {
+      setPoses(prev => prev.filter(p => p.id !== selectedId));
+      setSelectedId(null);
+    }
   };
 
   return (
     <div
+      tabIndex={0}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       style={{
         width: '100vw',
         height: '100vh',
         boxSizing: 'border-box',
         position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      {poses.map((p, i) => (
+      {poses.map((p) => (
         <div
-          key={i}
+          key={p.id}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedId(p.id);
+          }}
           style={{
             position: 'absolute',
             left: p.x,
             top: p.y,
           }}
         >
-          <Node />
+          <Node selected={p.id === selectedId} />
         </div>
       ))} 
     </div>
