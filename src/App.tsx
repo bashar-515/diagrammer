@@ -3,13 +3,13 @@ import { NODE_RADIUS } from './consts'
 import Node from './components/ui/Node'
 
 function App() {
-  const [pos, setPos] = useState<{ x: number, y: number } | null>(null);
+  const [poses, setPoses] = useState<{ x: number, y: number }[] | []>([]);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const x = e.clientX - NODE_RADIUS;
     const y = e.clientY - NODE_RADIUS;
 
-    setPos({ x, y });
+    setPoses(prev => [...prev, { x, y }]);
   };
 
   return (
@@ -22,17 +22,18 @@ function App() {
         position: 'relative',
       }}
     >
-      {pos && (
+      {poses.map((p, i) => (
         <div
+          key={i}
           style={{
             position: 'absolute',
-            left: pos.x,
-            top: pos.y,
+            left: p.x,
+            top: p.y,
           }}
         >
           <Node />
         </div>
-      )}
+      ))} 
     </div>
   )
 }
