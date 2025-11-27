@@ -29,6 +29,8 @@ function App() {
     if ((e.key === 'Backspace' || e.key === 'Delete') && selectedId !== null) {
       setPoses(prev => prev.filter(p => p.id !== selectedId));
       setSelectedId(null);
+    } else if (e.key === 'Escape' && selectedId !== null) {
+      setSelectedId(null);
     }
   };
 
@@ -50,7 +52,12 @@ function App() {
           key={p.id}
           onClick={(e) => {
             e.stopPropagation();
-            setSelectedId(p.id);
+
+            if (p.id === selectedId) {
+              setSelectedId(null);
+            } else {
+              setSelectedId(p.id);
+            }
           }}
           style={{
             position: 'absolute',
