@@ -3,10 +3,12 @@ import { NODE_RADIUS } from './consts'
 import Node from './components/ui/Node'
 
 type Pose = { id: number, x: number, y: number };
+type DragState = { id: number, offsetX: number, offsetY: number };
 
 function App() {
   const [poses, setPoses] = useState<Pose[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [dragState, setDragState] = useState<DragState | null>(null);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (selectedId === null) {
@@ -34,11 +36,24 @@ function App() {
     }
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!dragState) return;
+
+    setPoses(prev => prev.map(p => p.id === dragState.id ? { ...p, x: e.clientX - dragState.offsetX, y: e.clientY - dragState.offsetY } : p));
+  };
+
+  const handleMouseUp = () => {
+    setDragState(null);
+  }
+
   return (
     <div
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
       style={{
         width: '100vw',
         height: '100vh',
@@ -58,6 +73,15 @@ function App() {
             } else {
               setSelectedId(p.id);
             }
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+
+            setDragState({
+              id: p.id,
+              offsetX: e.clientX - p.x,
+              offsetY: e.clientY - p.y,
+            })
           }}
           style={{
             position: 'absolute',
