@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { DOT_RADIUS } from './consts'
 import Dot from './components/ui/Dot'
 
@@ -9,6 +9,7 @@ function App() {
   const [nodes, setNodes] = useState<Record<number, Node>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
+  const dragMovedRef = useRef(false);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (selectedId === null) {
@@ -56,6 +57,8 @@ function App() {
 
       return next;
     });
+
+    dragMovedRef.current = true;
   };
 
   const handleMouseUp = () => {
@@ -86,6 +89,12 @@ function App() {
           onClick={(e) => {
             e.stopPropagation();
 
+            if (dragMovedRef.current) {
+              dragMovedRef.current = false;
+
+              return;
+            }
+
             if (selectedId === null) {
               setSelectedId(id);
             } else {
@@ -94,6 +103,8 @@ function App() {
           }}
           onMouseDown={(e) => {
             e.stopPropagation();
+
+            dragMovedRef.current = false;
 
             setDragState({
               id: id,
