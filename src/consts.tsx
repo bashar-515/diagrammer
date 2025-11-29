@@ -1,2 +1,2 @@
-export const NODE_DIAMETER = 20;
-export const NODE_RADIUS = NODE_DIAMETER / 2;
+export const DOT_DIAMETER = 20;
+export const DOT_RADIUS = DOT_DIAMETER / 2;

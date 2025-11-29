@@ -1,27 +1,24 @@
 import { useState } from 'react'
-import { NODE_RADIUS } from './consts'
-import Node from './components/ui/Node'
+import { DOT_RADIUS } from './consts'
+import Dot from './components/ui/Dot'
 
-type Pose = { id: number, x: number, y: number };
+type Node = { x: number, y: number };
 type DragState = { id: number, offsetX: number, offsetY: number };
 
 function App() {
-  const [poses, setPoses] = useState<Pose[]>([]);
+  const [nodes, setNodes] = useState<Record<number, Node>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (selectedId === null) {
-      const x = e.clientX - NODE_RADIUS;
-      const y = e.clientY - NODE_RADIUS;
+      const x = e.clientX - DOT_RADIUS;
+      const y = e.clientY - DOT_RADIUS;
 
-      const newPose: Pose = {
-        id: Date.now(),
-        x,
-        y,
-      };
-
-      setPoses(prev => [...prev, newPose]);
+      setNodes(prev => ({
+        ...prev,
+        [Date.now()]: { x, y },
+      }));
     }
 
     setSelectedId(null);
@@ -29,7 +26,12 @@ function App() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if ((e.key === 'Backspace' || e.key === 'Delete') && selectedId !== null) {
-      setPoses(prev => prev.filter(p => p.id !== selectedId));
+      setNodes(prev => {
+        const next = { ...prev };
+        delete next[selectedId];
+        return next;
+      });
+
       setSelectedId(null);
     } else if (e.key === 'Escape' && selectedId !== null) {
       setSelectedId(null);
@@ -39,7 +41,21 @@ function App() {
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!dragState) return;
 
-    setPoses(prev => prev.map(p => p.id === dragState.id ? { ...p, x: e.clientX - dragState.offsetX, y: e.clientY - dragState.offsetY } : p));
+    const { id, offsetX, offsetY } = dragState;
+
+    setNodes(prev => {
+      const next = { ...prev };
+
+      if (next[id]) {
+        next[id] = {
+          ...next[id],
+          x: e.clientX - offsetX,
+          y: e.clientY - offsetY,
+        };
+      }
+
+      return next;
+    });
   };
 
   const handleMouseUp = () => {
@@ -62,36 +78,38 @@ function App() {
         overflow: 'hidden',
       }}
     >
-      {poses.map((p) => (
-        <div
-          key={p.id}
+      {Object.entries(nodes).map(([idStr, node]) => {
+        const id = Number(idStr)
+
+        return (<div
+          key={id}
           onClick={(e) => {
             e.stopPropagation();
 
-            if (p.id === selectedId) {
-              setSelectedId(null);
+            if (selectedId === null) {
+              setSelectedId(id);
             } else {
-              setSelectedId(p.id);
+              setSelectedId(null);
             }
           }}
           onMouseDown={(e) => {
             e.stopPropagation();
 
             setDragState({
-              id: p.id,
-              offsetX: e.clientX - p.x,
-              offsetY: e.clientY - p.y,
+              id: id,
+              offsetX: e.clientX - node.x,
+              offsetY: e.clientY - node.y,
             })
           }}
           style={{
             position: 'absolute',
-            left: p.x,
-            top: p.y,
+            left: node.x,
+            top: node.y,
           }}
         >
-          <Node selected={p.id === selectedId} />
-        </div>
-      ))} 
+          <Dot selected={id === selectedId} />
+        </div>)
+      })} 
     </div>
   )
 }
